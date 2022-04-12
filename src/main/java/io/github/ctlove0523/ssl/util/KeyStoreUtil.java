@@ -1,7 +1,5 @@
 package io.github.ctlove0523.ssl.util;
 
-import io.netty.handler.ssl.SslContext;
-
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
@@ -30,16 +28,19 @@ public class KeyStoreUtil {
         return keyStore;
     }
 
-    public static SSLContext createSslContext(KeyStore keyStore, KeyStore trustStore) {
+    public static SSLContext createSslContext(KeyStore keyStore, char[] keyStorePassword, KeyStore trustStore) {
         try {
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             trustManagerFactory.init(trustStore);
 
-            KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, "serverJKS@2022".toCharArray());
-
             SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+            if (keyStore != null) {
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                keyManagerFactory.init(keyStore, "serverJKS@2022".toCharArray());
+                sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
+            } else {
+                sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+            }
 
             return sslContext;
         } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | KeyManagementException e) {
